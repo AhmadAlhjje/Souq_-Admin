@@ -5,7 +5,6 @@ import "./globals.css";
 
 // استيراد الـ Providers
 import Providers from "@/components/providers/Providers";
-import ConditionalHeader from "@/components/ConditionalHeader";
 import { ToastProvider } from "@/hooks/useToast";
 import { StoreProvider } from "@/contexts/StoreContext";
 import SessionManager from "@/utils/SessionManager";
@@ -44,7 +43,6 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
-          <ConditionalHeader />
           <ToastProvider>
             <StoreProvider>
               <SessionManager />

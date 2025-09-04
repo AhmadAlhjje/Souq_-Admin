@@ -3,6 +3,7 @@
 import React from "react";
 import { Eye, Edit, Trash2, Plus, Download, Upload, Search, Filter, Truck, Check, X } from "lucide-react";
 import useTheme from "@/hooks/useTheme";
+import { Ban, FileText, UserX, UserCheck } from "lucide-react";
 import { useThemeContext } from "@/contexts/ThemeContext";
 
 
@@ -290,6 +291,45 @@ export function RejectButton(props: Omit<BaseButtonProps, "icon" | "variant" | "
       variant="danger"
       text={props.text ?? "رفض"}
       tooltip={props.tooltip ?? "رفض / Reject"}
+    />
+  );
+}
+
+// زر الحظر
+export function BanButton(props: Omit<BaseButtonProps, "icon" | "variant" | "text"> & { text?: string }) {
+  return (
+    <ActionButton
+      {...props}
+      icon={<Ban />}
+      variant="danger"
+      text={props.text}
+      tooltip={props.tooltip ?? (props.text ? undefined : "حظر المتجر / Ban Store")}
+    />
+  );
+}
+
+// زر إلغاء الحظر
+export function UnbanButton(props: Omit<BaseButtonProps, "icon" | "variant" | "text"> & { text?: string }) {
+  return (
+    <ActionButton
+      {...props}
+      icon={<UserCheck />}
+      variant="success"
+      text={props.text}
+      tooltip={props.tooltip ?? (props.text ? undefined : "إلغاء حظر المتجر / Unban Store")}
+    />
+  );
+}
+
+// زر إنشاء فاتورة
+export function CreateInvoiceButton(props: Omit<BaseButtonProps, "icon" | "variant" | "text"> & { text?: string }) {
+  return (
+    <ActionButton
+      {...props}
+      icon={<FileText />}
+      variant="primary"
+      text={props.text}
+      tooltip={props.tooltip ?? (props.text ? undefined : "إنشاء فاتورة / Create Invoice")}
     />
   );
 }

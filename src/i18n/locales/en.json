@@ -551,6 +551,9 @@
       "subtitle": "Store Management"
     },
     "dashboard": "Dashboard",
+    "stores": "View Stores",
+    "invoices": "Invoices Report",
+    "zeroNotifications": "Zero Stock Alerts",
     "createStore": "Create Store",
     "profile": "Profile",
     "products": {

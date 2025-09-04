@@ -583,6 +583,9 @@
       "subtitle": "إدارة المتجر"
     },
     "createStore": "إنشاء متجر",
+    "stores": "عرض المتاجر",
+    "invoices": "كشف الفواتير",
+    "zeroNotifications": "إشعارات التصفير",
     "dashboard": "لوحة التحكم",
     "profile": "الملف الشخصي",
     "products": {

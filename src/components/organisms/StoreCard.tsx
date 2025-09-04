@@ -1,73 +1,82 @@
 "use client";
-import React from "react";
-import { MapPin, Star } from "lucide-react";
 
-interface Store {
-  id: number;
-  name: string;
-  image: string; // ← فقط من الـ API
-  location: string;
-  rating?: number;
-  reviewsCount?: number;
+import React from 'react';
+import useTheme from '@/hooks/useTheme';
+
+interface StatsCardProps {
+  title: string;
+  value: number;
+  icon: React.ComponentType<any>;
+  color: 'blue' | 'green' | 'red' | 'yellow';
+  loading?: boolean;
 }
 
-interface StoreCardProps {
-  store: Store;
-  onViewDetails: (store: Store) => void;
-}
+const StatsCard: React.FC<StatsCardProps> = ({ 
+  title, 
+  value, 
+  icon: Icon, 
+  color, 
+  loading = false 
+}) => {
+  const { isDark } = useTheme();
 
-const StoreCard: React.FC<StoreCardProps> = ({ store, onViewDetails }) => {
-  const handleVisitStore = () => {
-    onViewDetails(store);
+  const colorClasses = {
+    blue: isDark 
+      ? 'bg-blue-900/20 text-blue-400' 
+      : 'bg-[#CFF7EE] text-[#004D5A]',
+    green: isDark 
+      ? 'bg-green-900/20 text-green-400' 
+      : 'bg-green-100 text-green-600',
+    red: isDark 
+      ? 'bg-red-900/20 text-red-400' 
+      : 'bg-red-100 text-red-600',
+    yellow: isDark 
+      ? 'bg-yellow-900/20 text-yellow-400' 
+      : 'bg-yellow-100 text-yellow-600',
   };
 
-  return (
-    <div className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer">
-      <div className="relative overflow-hidden">
-<img
-  src={store.image}
-  alt={store.name}
-  onError={(e) => {
-    console.warn("فشل تحميل الصورة:", store.image);
-    (e.target as HTMLImageElement).src = 
-      "https://placehold.co/400x250/00C8B8/FFFFFF?text=متجر";
-  }}
-/>
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-          <div className="flex items-center space-x-1">
-            <span className="text-sm font-medium text-gray-700">
-              {store.rating || 4.5}
-            </span>
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+  const textColorClasses = {
+    blue: isDark ? 'text-blue-400' : 'text-[#004D5A]',
+    green: isDark ? 'text-green-400' : 'text-green-600',
+    red: isDark ? 'text-red-400' : 'text-red-600',
+    yellow: isDark ? 'text-yellow-400' : 'text-yellow-600',
+  };
+
+  const cardBgClass = isDark 
+    ? 'bg-gray-800 border-gray-700' 
+    : 'bg-white border-[#96EDD9]';
+
+  if (loading) {
+    return (
+      <div className={`${cardBgClass} p-4 rounded-lg border shadow-sm animate-pulse`}>
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-lg bg-gray-300 dark:bg-gray-600 w-12 h-12" />
+          <div>
+            <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded mb-2 w-24" />
+            <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-16" />
           </div>
         </div>
       </div>
+    );
+  }
 
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-teal-600 transition-colors">
-          {store.name}
-        </h3>
-
-        <div className="flex items-center text-gray-500 mb-4">
-          <MapPin className="w-4 h-4 ml-1" />
-          <span className="text-sm">{store.location}</span>
+  return (
+    <div className={`${cardBgClass} p-4 rounded-lg border shadow-sm hover:shadow-md transition-all duration-200`}>
+      <div className="flex items-center gap-3">
+        <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
+          <Icon className="w-6 h-6" />
         </div>
-
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-500">
-            ({store.reviewsCount || 127} تقييم)
-          </span>
-
-          <button
-            onClick={handleVisitStore}
-            className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-2 rounded-lg transition-all duration-200 font-medium hover:shadow-md active:scale-95 transform"
-          >
-            زيارة المتجر
-          </button>
+        <div>
+          <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            {title}
+          </p>
+          <p className={`text-2xl font-bold ${textColorClasses[color]}`}>
+            {value.toLocaleString()}
+          </p>
         </div>
       </div>
     </div>
   );
 };
 
-export default StoreCard;
+export default StatsCard;
