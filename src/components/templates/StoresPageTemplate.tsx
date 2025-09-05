@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Building2, Check, AlertCircle } from 'lucide-react';
+import { Building2, Check, AlertCircle, DollarSign } from 'lucide-react';
 import { useThemeContext } from '@/contexts/ThemeContext';
 
 // Components
@@ -95,8 +95,9 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
     const totalStores = stores.length;
     const activeStores = stores.filter(s => s.status === 'active').length;
     const suspendedStores = stores.filter(s => s.status === 'suspended').length;
+    const totalSales = stores.reduce((sum, store) => sum + store.totalSales, 0);
     
-    return { totalStores, activeStores, suspendedStores };
+    return { totalStores, activeStores, suspendedStores, totalSales };
   }, [stores]);
 
   // دالة تنسيق العملة
@@ -211,6 +212,13 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
           value={stats.suspendedStores}
           icon={AlertCircle}
           color="yellow"
+          loading={loading}
+        />
+        <StatsCard
+          title="إجمالي المبيعات"
+          value={stats.totalSales}
+          icon={DollarSign}
+          color="blue"
           loading={loading}
         />
       </div>

@@ -346,53 +346,7 @@ const StoreDetailsPopup: React.FC<StoreDetailsPopupProps> = ({
                 </div>
               </div>
 
-              <div className={`p-6 rounded-lg border ${
-                isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
-              }`}>
-                <h4 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${
-                  isDark ? 'text-white' : 'text-gray-900'
-                }`}>
-                  <TrendingUp className="w-5 h-5" />
-                  الأداء
-                </h4>
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        التقييم العام
-                      </span>
-                      <span className="text-sm font-medium">{store.rating}/5</span>
-                    </div>
-                    <div className={`w-full rounded-full h-2 ${
-                      isDark ? 'bg-gray-600' : 'bg-gray-200'
-                    }`}>
-                      <div 
-                        className="bg-yellow-400 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${(store.rating / 5) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        نشاط المبيعات
-                      </span>
-                      <span className="text-sm font-medium">
-                        {((store.monthlySales / store.totalSales) * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div className={`w-full rounded-full h-2 ${
-                      isDark ? 'bg-gray-600' : 'bg-gray-200'
-                    }`}>
-                      <div 
-                        className="bg-teal-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${(store.monthlySales / store.totalSales) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
+              
             </div>
           </div>
 
