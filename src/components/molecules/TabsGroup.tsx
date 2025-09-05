@@ -1,27 +1,41 @@
 import React from 'react';
-import { Package, Check, X, Eye } from 'lucide-react';
+import { Package, Check, X, Eye, LucideIcon } from 'lucide-react';
 import TabButton from '../atoms/TabButton';
 import { TabType, OrderStats } from '../../types/orders';
+
+// تعريف نوع البيانات للتاب
+interface TabItem {
+  id: TabType;
+  label: string;
+  icon: LucideIcon;
+  count: number;
+}
 
 interface TabsGroupProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
   stats: OrderStats;
   isDark: boolean;
+  tabs?: TabItem[]; // جعل tabs اختياري
 }
 
 const TabsGroup: React.FC<TabsGroupProps> = ({
   activeTab,
   onTabChange,
   stats,
-  isDark
+  isDark,
+  tabs // tabs prop اختياري
 }) => {
-  const tabs = [
+  // التابات الافتراضية
+  const defaultTabs: TabItem[] = [
     { id: "all" as TabType, label: "كل الطلبات", icon: Package, count: stats.totalOrders },
     { id: "shipped" as TabType, label: "الطلبات المشحونة", icon: Check, count: stats.shippedOrders },
     { id: "unshipped" as TabType, label: "الطلبات غير المشحونة", icon: X, count: stats.unshippedOrders },
     { id: "monitored" as TabType, label: "الطلبات المرصودة", icon: Eye, count: stats.monitoredOrders || 0 },
   ];
+
+  // استخدام التابات المرسلة أو الافتراضية
+  const tabsToRender = tabs || defaultTabs;
 
   return (
     <div className="flex justify-start mb-6">
@@ -32,7 +46,7 @@ const TabsGroup: React.FC<TabsGroupProps> = ({
             : "bg-gray-100/80 backdrop-blur-sm border border-gray-300/30"
         }`}
       >
-        {tabs.map((tab, index) => (
+        {tabsToRender.map((tab, index) => (
           <TabButton
             key={tab.id}
             isActive={activeTab === tab.id}

@@ -134,13 +134,13 @@ export interface PaginationProps {
   pageSize?: number;
 }
 
-export interface TableColumn<T> {
-  key: keyof T;
-  label: string;
-  sortable?: boolean;
-  render?: (value: any, row: T) => React.ReactNode;
-  className?: string;
-}
+// export interface TableColumn<T> {
+//   key: keyof T;
+//   label: string;
+//   sortable?: boolean;
+//   render?: (value: any, row: T) => React.ReactNode;
+//   className?: string;
+// }
 
 export interface ModalProps {
   isOpen: boolean;

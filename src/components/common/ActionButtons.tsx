@@ -10,7 +10,7 @@ import { useThemeContext } from "@/contexts/ThemeContext";
 interface BaseButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   size?: "sm" | "md" | "lg";
-  variant?: "primary" | "success" | "danger" | "secondary" | "icon-only" | "confirm" | "cancel" | "ship";
+  variant?: "primary" | "success" | "danger" | "secondary" | "icon-only" | "confirm" | "cancel" | "ship" | "info" | "warning" | "purple" | "indigo" | "pink" | "orange" | "teal" | "cyan";
   tooltip?: string;
   text?: string;
   icon: React.ReactNode;
@@ -53,6 +53,22 @@ export function ActionButton({
           return "text-red-400 hover:bg-red-900/20 focus:ring-red-500";
         case "secondary":
           return "text-gray-400 hover:bg-gray-800 focus:ring-gray-500";
+        case "warning":
+          return "text-yellow-400 hover:bg-yellow-900/20 focus:ring-yellow-500";
+        case "info":
+          return "text-sky-400 hover:bg-sky-900/20 focus:ring-sky-500";
+        case "purple":
+          return "text-purple-400 hover:bg-purple-900/20 focus:ring-purple-500";
+        case "indigo":
+          return "text-indigo-400 hover:bg-indigo-900/20 focus:ring-indigo-500";
+        case "pink":
+          return "text-pink-400 hover:bg-pink-900/20 focus:ring-pink-500";
+        case "orange":
+          return "text-orange-400 hover:bg-orange-900/20 focus:ring-orange-500";
+        case "teal":
+          return "text-teal-400 hover:bg-teal-900/20 focus:ring-teal-500";
+        case "cyan":
+          return "text-cyan-400 hover:bg-cyan-900/20 focus:ring-cyan-500";
         case "ship":
           return "text-teal-400 hover:bg-teal-900/20 focus:ring-teal-500 hover:shadow-lg hover:shadow-teal-500/20";
         case "icon-only":
@@ -67,13 +83,29 @@ export function ActionButton({
     } else {
       switch (variant) {
         case "primary":
-          return "text-[#004D5A] hover:bg-[#CFF7EE] focus:ring-[#5CA9B5]";
+          return "text-blue-600 hover:bg-blue-50 focus:ring-blue-500";
         case "success":
-          return "text-[#5CA9B5] hover:bg-[#CFF7EE] focus:ring-[#5CA9B5]";
+          return "text-green-600 hover:bg-green-50 focus:ring-green-500";
         case "danger":
-          return "text-red-500 hover:bg-red-50 focus:ring-red-500";
+          return "text-red-600 hover:bg-red-50 focus:ring-red-500";
         case "secondary":
           return "text-gray-600 hover:bg-gray-100 focus:ring-gray-500";
+        case "warning":
+          return "text-yellow-600 hover:bg-yellow-50 focus:ring-yellow-500";
+        case "info":
+          return "text-sky-600 hover:bg-sky-50 focus:ring-sky-500";
+        case "purple":
+          return "text-purple-600 hover:bg-purple-50 focus:ring-purple-500";
+        case "indigo":
+          return "text-indigo-600 hover:bg-indigo-50 focus:ring-indigo-500";
+        case "pink":
+          return "text-pink-600 hover:bg-pink-50 focus:ring-pink-500";
+        case "orange":
+          return "text-orange-600 hover:bg-orange-50 focus:ring-orange-500";
+        case "teal":
+          return "text-teal-600 hover:bg-teal-50 focus:ring-teal-500";
+        case "cyan":
+          return "text-cyan-600 hover:bg-cyan-50 focus:ring-cyan-500";
         case "ship":
           return "text-teal-600 hover:bg-teal-50 focus:ring-teal-500 hover:shadow-lg hover:shadow-teal-500/20";
         case "icon-only":
@@ -139,14 +171,14 @@ export function ActionButton({
   );
 }
 
-// أزرار الإجراءات المحسنة مع Dark Mode
+// أزرار الإجراءات المحسنة مع ألوان مختلفة
 
 export function ViewButton(props: Omit<BaseButtonProps, "icon" | "variant" | "text"> & { text?: string }) {
   return (
     <ActionButton
       {...props}
       icon={<Eye />}
-      variant="primary"
+      variant="info" // أزرق فاتح للعرض
       text={props.text}
       tooltip={props.tooltip ?? (props.text ? undefined : "عرض / View")}
     />
@@ -158,7 +190,7 @@ export function EditButton(props: Omit<BaseButtonProps, "icon" | "variant" | "te
     <ActionButton
       {...props}
       icon={<Edit />}
-      variant="success"
+      variant="warning" // أصفر للتعديل
       text={props.text}
       tooltip={props.tooltip ?? (props.text ? undefined : "تعديل / Edit")}
     />
@@ -170,7 +202,7 @@ export function DeleteButton(props: Omit<BaseButtonProps, "icon" | "variant" | "
     <ActionButton
       {...props}
       icon={<Trash2 />}
-      variant="danger"
+      variant="danger" // أحمر للحذف
       text={props.text}
       tooltip={props.tooltip ?? (props.text ? undefined : "حذف / Delete")}
       loading={props.loading}
@@ -183,7 +215,7 @@ export function ShipButton(props: Omit<BaseButtonProps, "icon" | "variant" | "te
     <ActionButton
       {...props}
       icon={<Truck />}
-      variant="ship"
+      variant="teal" // تيل للشحن
       text={props.text}
       tooltip={props.tooltip ?? (props.text ? undefined : "تم الشحن / Ship")}
     />
@@ -195,7 +227,7 @@ export function AddButton(props: Omit<BaseButtonProps, "icon" | "variant"> & { t
     <ActionButton
       {...props}
       icon={<Plus />}
-      variant="primary"
+      variant="success" // أخضر للإضافة
       tooltip={props.tooltip ?? (props.text ? undefined : "إضافة / Add")}
     />
   );
@@ -206,7 +238,7 @@ export function DownloadButton(props: Omit<BaseButtonProps, "icon" | "variant"> 
     <ActionButton
       {...props}
       icon={<Download />}
-      variant="secondary"
+      variant="secondary" // رمادي للتحميل
       tooltip={props.tooltip ?? (props.text ? undefined : "تحميل / Download")}
     />
   );
@@ -217,7 +249,7 @@ export function UploadButton(props: Omit<BaseButtonProps, "icon" | "variant"> & 
     <ActionButton
       {...props}
       icon={<Upload />}
-      variant="secondary"
+      variant="purple" // بنفسجي فاتح للرفع
       tooltip={props.tooltip ?? (props.text ? undefined : "رفع / Upload")}
     />
   );
@@ -228,7 +260,7 @@ export function SearchButton(props: Omit<BaseButtonProps, "icon" | "variant"> & 
     <ActionButton
       {...props}
       icon={<Search />}
-      variant="secondary"
+      variant="cyan" // سماوي للبحث
       tooltip={props.tooltip ?? (props.text ? undefined : "بحث / Search")}
     />
   );
@@ -239,7 +271,7 @@ export function FilterButton(props: Omit<BaseButtonProps, "icon" | "variant"> & 
     <ActionButton
       {...props}
       icon={<Filter />}
-      variant="secondary"
+      variant="orange" // برتقالي للفلتر
       tooltip={props.tooltip ?? (props.text ? undefined : "تصفية / Filter")}
     />
   );
@@ -251,7 +283,7 @@ export function ConfirmButton(props: Omit<BaseButtonProps, "icon" | "variant" | 
     <ActionButton
       {...props}
       icon={<Check />}
-      variant="confirm"
+      variant="confirm" // أخضر للتأكيد
       text={props.text}
       tooltip={props.tooltip ?? (props.text ? undefined : "تأكيد / Confirm")}
     />
@@ -263,7 +295,7 @@ export function CancelButton(props: Omit<BaseButtonProps, "icon" | "variant" | "
     <ActionButton
       {...props}
       icon={<X />}
-      variant="cancel"
+      variant="cancel" // أحمر للإلغاء
       text={props.text}
       tooltip={props.tooltip ?? (props.text ? undefined : "إلغاء / Cancel")}
     />
@@ -276,7 +308,7 @@ export function SaveButton(props: Omit<BaseButtonProps, "icon" | "variant" | "te
     <ActionButton
       {...props}
       icon={<Check />}
-      variant="success"
+      variant="success" // أخضر للحفظ
       text={props.text ?? "حفظ"}
       tooltip={props.tooltip ?? "حفظ التغييرات / Save"}
     />
@@ -288,7 +320,7 @@ export function RejectButton(props: Omit<BaseButtonProps, "icon" | "variant" | "
     <ActionButton
       {...props}
       icon={<X />}
-      variant="danger"
+      variant="danger" // أحمر للرفض
       text={props.text ?? "رفض"}
       tooltip={props.tooltip ?? "رفض / Reject"}
     />
@@ -301,7 +333,7 @@ export function BanButton(props: Omit<BaseButtonProps, "icon" | "variant" | "tex
     <ActionButton
       {...props}
       icon={<Ban />}
-      variant="danger"
+      variant="orange" // برتقالي للحظر المؤقت
       text={props.text}
       tooltip={props.tooltip ?? (props.text ? undefined : "حظر المتجر / Ban Store")}
     />
@@ -314,7 +346,7 @@ export function UnbanButton(props: Omit<BaseButtonProps, "icon" | "variant" | "t
     <ActionButton
       {...props}
       icon={<UserCheck />}
-      variant="success"
+      variant="success" // أخضر لإلغاء الحظر
       text={props.text}
       tooltip={props.tooltip ?? (props.text ? undefined : "إلغاء حظر المتجر / Unban Store")}
     />
@@ -327,7 +359,7 @@ export function CreateInvoiceButton(props: Omit<BaseButtonProps, "icon" | "varia
     <ActionButton
       {...props}
       icon={<FileText />}
-      variant="primary"
+      variant="indigo" // بنفسجي داكن لإنشاء الفاتورة
       text={props.text}
       tooltip={props.tooltip ?? (props.text ? undefined : "إنشاء فاتورة / Create Invoice")}
     />

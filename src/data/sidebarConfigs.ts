@@ -7,6 +7,7 @@ import {
   Receipt,
   AlertTriangle,
   Building2,
+  Package,
 } from "lucide-react";
 import { SidebarConfig } from "@/types/admin";
 
@@ -37,6 +38,12 @@ export const getAdminSidebarConfig = (t: any): SidebarConfig => ({
       href: "/superAdmin/dashboard/invoices",
     },
     {
+      id: "orders",
+      label: t("sidebar.orders.main"), // "الطلبات"
+      icon: Package,
+      href: "/superAdmin/dashboard/orders",
+    },
+    {
       id: "zero-notifications",
       label: t("sidebar.zeroNotifications"), // "عرض اشعارات التصفير"
       icon: AlertTriangle, // أو Bell
@@ -51,12 +58,12 @@ export const getAdminSidebarConfig = (t: any): SidebarConfig => ({
     },
   ],
   bottomMenuItems: [
-    {
-      id: "help",
-      label: t("sidebar.bottom.help"),
-      icon: HelpCircle,
-      href: "/superAdmin/help",
-    },
+    // {
+    //   id: "help",
+    //   label: t("sidebar.bottom.help"),
+    //   icon: HelpCircle,
+    //   href: "/superAdmin/help",
+    // },
     {
       id: "logout",
       label: t("sidebar.bottom.logout"),

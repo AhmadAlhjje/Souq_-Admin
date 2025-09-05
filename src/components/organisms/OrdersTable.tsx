@@ -1,7 +1,9 @@
 import React from 'react';
-import DataTable, { TableColumn } from '../../components/organisms/DataTable';
+
 import { ViewButton, ShipButton } from '../../components/common/ActionButtons';
 import { Order, TabType } from '../../types/orders';
+import DataTable from './DataTable';
+import { TableColumn } from '@/types/table';
 
 interface OrdersTableProps {
   orders: Order[];

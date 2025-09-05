@@ -7,6 +7,7 @@ export interface Product {
   totalPrice: number;
 }
 
+
 export interface Order {
   id: string;
   customerName: string;
@@ -20,17 +21,18 @@ export interface Order {
   customerPhone: string;
   customerAddress: string;
   isMonitored?: boolean;
-  products?:Product[];
+  products:Product[] ;
 }
 
-export type TabType = "all" | "shipped" | "unshipped" | "monitored";
+
+export type TabType = "all" | "shipped" | "unshipped" ;
 
 export interface OrderStats {
   totalOrders: number;
   shippedOrders: number;
   unshippedOrders: number;
-  monitoredOrders: number;
+  monitoredOrders?: number;
   totalShippedPrice: number;
   totalUnshippedPrice: number;
-  totalMonitoredPrice: number;
+  totalMonitoredPrice?: number;
 }
