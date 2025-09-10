@@ -5,10 +5,11 @@ import useTheme from '@/hooks/useTheme';
 
 interface StatsCardProps {
   title: string;
-  value: number;
+  value: number | string; // دعم النصوص والأرقام
   icon: React.ComponentType<any>;
   color: 'blue' | 'green' | 'red' | 'yellow';
   loading?: boolean;
+  formatValue?: (value: number) => string; // دعم تنسيق القيم
 }
 
 const StatsCard: React.FC<StatsCardProps> = ({ 
@@ -16,7 +17,8 @@ const StatsCard: React.FC<StatsCardProps> = ({
   value, 
   icon: Icon, 
   color, 
-  loading = false 
+  loading = false,
+  formatValue 
 }) => {
   const { isDark } = useTheme();
 
@@ -46,6 +48,19 @@ const StatsCard: React.FC<StatsCardProps> = ({
     ? 'bg-gray-800 border-gray-700' 
     : 'bg-white border-[#96EDD9]';
 
+  // دالة عرض القيمة
+  const displayValue = () => {
+    if (typeof value === 'string') {
+      return value;
+    }
+    
+    if (formatValue && typeof value === 'number') {
+      return formatValue(value);
+    }
+    
+    return value.toLocaleString();
+  };
+
   if (loading) {
     return (
       <div className={`${cardBgClass} p-4 rounded-lg border shadow-sm animate-pulse`}>
@@ -71,7 +86,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
             {title}
           </p>
           <p className={`text-2xl font-bold ${textColorClasses[color]}`}>
-            {value.toLocaleString()}
+            {displayValue()}
           </p>
         </div>
       </div>

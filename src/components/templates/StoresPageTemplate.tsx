@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Building2, Check, AlertCircle, DollarSign } from 'lucide-react';
+import { Building2, Check, AlertCircle, DollarSign, RefreshCw } from 'lucide-react';
 import { useThemeContext } from '@/contexts/ThemeContext';
 
 // Components
-import StatsCard from '@/components/organisms/StoreCard'; // تصحيح الاستيراد
+import StatsCard from '@/components/organisms/StoreCard'; 
 import StoresGrid from '@/components/organisms/StoresGrid';
 import StoresTable from '@/components/organisms/StoresTable';
 import StoresFilters from '@/components/organisms/StoresFilters';
@@ -22,23 +22,38 @@ interface Store {
     phone: string;
     avatar?: string;
   };
+  address: string;
+  description: string;
+  images: string[];
   website?: string;
   rating: number;
   totalSales: number;
   monthlySales: number;
   totalOrders: number;
+  reviewsCount: number;
   status: 'active' | 'suspended';
   createdAt: string;
 }
 
+interface Statistics {
+  totalStores: number;
+  activeStores: number;
+  blockedStores: number;
+  totalSiteRevenue: number;
+}
+
 interface StoresPageTemplateProps {
   stores: Store[];
+  statistics: Statistics;
   loading?: boolean;
+  onRefresh?: () => Promise<void>;
 }
 
 const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({ 
   stores: initialStores, 
-  loading = false 
+  statistics,
+  loading = false,
+  onRefresh
 }) => {
   const { isDark } = useThemeContext();
   
@@ -52,13 +67,10 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [refreshing, setRefreshing] = useState(false);
 
   // حالة النوافذ المنبثقة
   const [detailsPopup, setDetailsPopup] = useState<{isOpen: boolean, store: Store | null}>({
-    isOpen: false,
-    store: null
-  });
-  const [editPopup, setEditPopup] = useState<{isOpen: boolean, store: Store | null}>({
     isOpen: false,
     store: null
   });
@@ -74,7 +86,8 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
       const matchesSearch = 
         store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         store.owner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        store.category.toLowerCase().includes(searchTerm.toLowerCase());
+        store.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        store.address.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesCategory = !selectedCategory || store.category === selectedCategory;
       const matchesStatus = !selectedStatus || store.status === selectedStatus;
@@ -90,16 +103,6 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredStores.slice(startIndex, endIndex);
 
-  // إحصائيات
-  const stats = useMemo(() => {
-    const totalStores = stores.length;
-    const activeStores = stores.filter(s => s.status === 'active').length;
-    const suspendedStores = stores.filter(s => s.status === 'suspended').length;
-    const totalSales = stores.reduce((sum, store) => sum + store.totalSales, 0);
-    
-    return { totalStores, activeStores, suspendedStores, totalSales };
-  }, [stores]);
-
   // دالة تنسيق العملة
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ar-SA', {
@@ -110,7 +113,7 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
     }).format(amount);
   };
 
-  // معالجات الأحداث المحدثة
+  // معالجات الأحداث
   const handleView = (id: string) => {
     const store = stores.find(s => s.id === id);
     if (store) {
@@ -121,7 +124,7 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
   const handleEdit = (id: string) => {
     const store = stores.find(s => s.id === id);
     if (store) {
-      setEditPopup({ isOpen: true, store });
+      alert(`تعديل المتجر: ${store.name} - هذه الميزة قيد التطوير`);
     }
   };
 
@@ -131,7 +134,6 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
     }
   };
 
-  // معالجات الأحداث الجديدة
   const handleBan = (id: string) => {
     if (confirm('هل أنت متأكد من حظر هذا المتجر؟')) {
       setStores(prev => prev.map(s => 
@@ -153,13 +155,6 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
     alert(`إنشاء فاتورة للمتجر: ${store?.name} - هذه الميزة قيد التطوير`);
   };
 
-  const handleSaveStore = (updatedStore: Store) => {
-    setStores(prev => prev.map(s => 
-      s.id === updatedStore.id ? updatedStore : s
-    ));
-    setEditPopup({ isOpen: false, store: null });
-  };
-
   // معالجات الفلاتر
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -175,6 +170,20 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1);
+  };
+
+  // دالة إعادة التحميل
+  const handleRefresh = async () => {
+    if (onRefresh) {
+      setRefreshing(true);
+      try {
+        await onRefresh();
+      } catch (error) {
+        console.error('خطأ في إعادة التحميل:', error);
+      } finally {
+        setRefreshing(false);
+      }
+    }
   };
 
   return (
@@ -195,31 +204,32 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="إجمالي المتاجر"
-          value={stats.totalStores}
+          value={statistics.totalStores}
           icon={Building2}
           color="blue"
           loading={loading}
         />
         <StatsCard
           title="المتاجر النشطة"
-          value={stats.activeStores}
+          value={statistics.activeStores}
           icon={Check}
           color="green"
           loading={loading}
         />
         <StatsCard
           title="المتاجر المحظورة"
-          value={stats.suspendedStores}
+          value={statistics.blockedStores}
           icon={AlertCircle}
           color="yellow"
           loading={loading}
         />
         <StatsCard
           title="إجمالي المبيعات"
-          value={stats.totalSales}
+          value={statistics.totalSiteRevenue}
           icon={DollarSign}
           color="blue"
           loading={loading}
+          formatValue={formatCurrency}
         />
       </div>
 
@@ -285,7 +295,6 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
         onClose={() => setDetailsPopup({ isOpen: false, store: null })}
         formatCurrency={formatCurrency}
       />
-
     </div>
   );
 };

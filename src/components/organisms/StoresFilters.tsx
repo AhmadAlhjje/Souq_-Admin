@@ -34,6 +34,15 @@ const StoresFilters: React.FC<StoresFiltersProps> = ({
     { value: 'suspended', label: 'محظور' }
   ];
 
+  const categoryOptions = [
+    { value: 'إلكترونيات', label: 'إلكترونيات' },
+    { value: 'ملابس', label: 'ملابس' },
+    { value: 'كتب', label: 'كتب' },
+    { value: 'تجميل', label: 'تجميل' },
+    { value: 'رياضة', label: 'رياضة' },
+    { value: 'عام', label: 'عام' }
+  ];
+
   const viewModeToggleClasses = isDark ? 'bg-gray-700' : 'bg-gray-100';
 
   const getViewModeButtonClasses = (mode: 'grid' | 'table') => {
