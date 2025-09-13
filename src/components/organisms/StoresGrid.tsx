@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Building2, Star, ExternalLink, Mail, Phone } from 'lucide-react';
+import { Building2, Star, MapPin, Phone } from 'lucide-react';
 import { DeleteButton, ViewButton, BanButton, UnbanButton, CreateInvoiceButton } from '@/components/common/ActionButtons';
 import Badge from '@/components/atoms/Badge';
 import Avatar from '@/components/atoms/Avatar';
@@ -17,11 +17,15 @@ interface Store {
     phone: string;
     avatar?: string;
   };
+  address: string;
+  description: string;
+  images: string[];
   website?: string;
   rating: number;
   totalSales: number;
   monthlySales: number;
   totalOrders: number;
+  reviewsCount: number;
   status: 'active' | 'suspended';
   createdAt: string;
 }
@@ -33,7 +37,6 @@ interface StoresGridProps {
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
-  // المعالجات الجديدة
   onBan: (id: string) => void;
   onUnban: (id: string) => void;
   onCreateInvoice: (id: string) => void;
@@ -155,7 +158,10 @@ const StoresGrid: React.FC<StoresGridProps> = ({
               </p>
               <div className="flex items-center gap-1 mt-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="text-sm font-medium">{store.rating}</span>
+                <span className="text-sm font-medium">{store.rating.toFixed(1)}</span>
+                <span className={`text-xs ${secondaryTextClasses}`}>
+                  ({store.reviewsCount})
+                </span>
               </div>
             </div>
           </div>
@@ -163,20 +169,29 @@ const StoresGrid: React.FC<StoresGridProps> = ({
           {/* Store Info */}
           <div className="space-y-3 mb-4">
             <div>
-              <p className={`font-medium ${textClasses} mb-1`}>
+              <p className={`font-medium ${textClasses} mb-2`}>
                 {store.owner.name}
               </p>
               <div className={`text-sm ${secondaryTextClasses} space-y-1`}>
                 <div className="flex items-center gap-2">
-                  <Mail className="w-3 h-3" />
-                  <span>{store.owner.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
                   <Phone className="w-3 h-3" />
                   <span>{store.owner.phone}</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-3 h-3" />
+                  <span className="truncate">{store.address}</span>
+                </div>
               </div>
             </div>
+
+            {/* Description */}
+            {store.description && (
+              <div>
+                <p className={`text-sm ${secondaryTextClasses} line-clamp-2`}>
+                  {store.description}
+                </p>
+              </div>
+            )}
 
             {/* Sales Info */}
             <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-200 dark:border-gray-600">
@@ -191,6 +206,16 @@ const StoresGrid: React.FC<StoresGridProps> = ({
                 <p className={`font-semibold ${textClasses}`}>
                   {formatCurrency(store.monthlySales)}
                 </p>
+              </div>
+            </div>
+
+            {/* Orders Info */}
+            <div className="grid grid-cols-1 gap-2">
+              <div className="flex justify-between">
+                <span className={`text-sm ${secondaryTextClasses}`}>إجمالي الطلبات:</span>
+                <span className={`text-sm font-medium ${textClasses}`}>
+                  {store.totalOrders.toLocaleString()}
+                </span>
               </div>
             </div>
           </div>

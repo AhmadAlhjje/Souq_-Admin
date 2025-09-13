@@ -129,6 +129,88 @@ export const updateStore = async (id: number, storeData: StoreData) => {
   return response.data;
 };
 
+// حذف متجر
+export const deleteStore = async (storeId: string): Promise<void> => {
+  try {
+    console.log(`🗑️ حذف متجر برقم ${storeId}...`);
+    
+    const response = await api.delete(`/stores/${storeId}`);
+    
+    console.log("✅ تم حذف المتجر بنجاح:", response.data);
+    
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ خطأ في حذف المتجر:", error);
+    
+    if (error.response) {
+      const errorMessage = error.response.data?.message || 'حدث خطأ أثناء حذف المتجر';
+      throw new Error(errorMessage);
+    }
+    
+    throw new Error('فشل في الاتصال بالخادم');
+  }
+};
+
+// تبديل حالة المتجر (حظر/إلغاء حظر)
+export const toggleStoreStatus = async (storeId: string): Promise<APIStore> => {
+  try {
+    console.log(`🔄 تبديل حالة متجر برقم ${storeId}...`);
+    const response = await api.put(`/stores/toggle-status/${storeId}`);
+    
+    
+    console.log("✅ تم تبديل حالة المتجر بنجاح:", response.data);
+    
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ خطأ في تبديل حالة المتجر:", error);
+    
+    if (error.response) {
+      const errorMessage = error.response.data?.message || 'حدث خطأ أثناء تبديل حالة المتجر';
+      throw new Error(errorMessage);
+    }
+    
+    throw new Error('فشل في الاتصال بالخادم');
+  }
+};
+
+// حظر متجر (تابع مساعد)
+export const banStore = async (storeId: string): Promise<APIStore> => {
+  try {
+    console.log(`🚫 حظر متجر برقم ${storeId}...`);
+    
+    // التحقق من الحالة الحالية قبل التبديل
+    const storeResponse = await getStoreById(parseInt(storeId));
+    
+    if (storeResponse.is_blocked === 1) {
+      throw new Error('المتجر محظور بالفعل');
+    }
+    
+    return await toggleStoreStatus(storeId);
+  } catch (error: any) {
+    console.error("❌ خطأ في حظر المتجر:", error);
+    throw error;
+  }
+};
+
+// إلغاء حظر متجر (تابع مساعد)
+export const unbanStore = async (storeId: string): Promise<APIStore> => {
+  try {
+    console.log(`✅ إلغاء حظر متجر برقم ${storeId}...`);
+    
+    // التحقق من الحالة الحالية قبل التبديل
+    const storeResponse = await getStoreById(parseInt(storeId));
+    
+    if (storeResponse.is_blocked === 0) {
+      throw new Error('المتجر غير محظور');
+    }
+    
+    return await toggleStoreStatus(storeId);
+  } catch (error: any) {
+    console.error("❌ خطأ في إلغاء حظر المتجر:", error);
+    throw error;
+  }
+};
+
 // جلب جميع المتاجر
 export const getStores = async (): Promise<StoreResponse> => {
   try {
@@ -190,7 +272,7 @@ export const getStores = async (): Promise<StoreResponse> => {
   }
 };
 
-// جلب متجر واحد بمنتجاته - إصلاح النوع
+// جلب متجر واحد بمنتجاته
 export const getStore = async (storeId: number): Promise<APIStore> => {
   try {
     console.log(`🔄 جلب متجر برقم ${storeId}...`);

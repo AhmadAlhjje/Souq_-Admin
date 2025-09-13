@@ -46,19 +46,33 @@ interface StoresPageTemplateProps {
   stores: Store[];
   statistics: Statistics;
   loading?: boolean;
+  actionLoading?: string | null;
   onRefresh?: () => Promise<void>;
+  onView: (id: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onBan: (id: string) => void;
+  onUnban: (id: string) => void;
+  onCreateInvoice: (id: string) => void;
 }
 
 const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({ 
   stores: initialStores, 
   statistics,
   loading = false,
-  onRefresh
+  actionLoading = null,
+  onRefresh,
+  onView,
+  onEdit,
+  onDelete,
+  onBan,
+  onUnban,
+  onCreateInvoice
 }) => {
   const { isDark } = useThemeContext();
   
-  // إدارة حالة المتاجر محلياً
-  const [stores, setStores] = useState<Store[]>(initialStores);
+  // إدارة حالة المتاجر محلياً للفلترة فقط
+  const [stores] = useState<Store[]>(initialStores);
   
   // حالة الفلاتر والبحث
   const [searchTerm, setSearchTerm] = useState('');
@@ -75,14 +89,12 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
     store: null
   });
 
-  // تحديث البيانات عند تغيير البروب
-  React.useEffect(() => {
-    setStores(initialStores);
-  }, [initialStores]);
+  // استخدام البيانات المرسلة من الصفحة الرئيسية
+  const currentStores = initialStores;
 
   // فلترة البيانات
   const filteredStores = useMemo(() => {
-    return stores.filter(store => {
+    return currentStores.filter(store => {
       const matchesSearch = 
         store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         store.owner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -94,7 +106,7 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
       
       return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [stores, searchTerm, selectedCategory, selectedStatus]);
+  }, [currentStores, searchTerm, selectedCategory, selectedStatus]);
 
   // حسابات الصفحات
   const totalItems = filteredStores.length;
@@ -113,46 +125,38 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
     }).format(amount);
   };
 
-  // معالجات الأحداث
-  const handleView = (id: string) => {
-    const store = stores.find(s => s.id === id);
+  // معالجات الأحداث مع حالة التحميل
+  const handleViewWithLoading = (id: string) => {
+    if (actionLoading === id) return;
+    const store = currentStores.find(s => s.id === id);
     if (store) {
       setDetailsPopup({ isOpen: true, store });
     }
   };
 
-  const handleEdit = (id: string) => {
-    const store = stores.find(s => s.id === id);
-    if (store) {
-      alert(`تعديل المتجر: ${store.name} - هذه الميزة قيد التطوير`);
-    }
+  const handleEditWithLoading = (id: string) => {
+    if (actionLoading === id) return;
+    onEdit(id);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('هل أنت متأكد من حذف هذا المتجر؟')) {
-      setStores(prev => prev.filter(s => s.id !== id));
-    }
+  const handleDeleteWithLoading = (id: string) => {
+    if (actionLoading === id) return;
+    onDelete(id);
   };
 
-  const handleBan = (id: string) => {
-    if (confirm('هل أنت متأكد من حظر هذا المتجر؟')) {
-      setStores(prev => prev.map(s => 
-        s.id === id ? { ...s, status: 'suspended' as const } : s
-      ));
-    }
+  const handleBanWithLoading = (id: string) => {
+    if (actionLoading === id) return;
+    onBan(id);
   };
 
-  const handleUnban = (id: string) => {
-    if (confirm('هل أنت متأكد من إلغاء حظر هذا المتجر؟')) {
-      setStores(prev => prev.map(s => 
-        s.id === id ? { ...s, status: 'active' as const } : s
-      ));
-    }
+  const handleUnbanWithLoading = (id: string) => {
+    if (actionLoading === id) return;
+    onUnban(id);
   };
 
-  const handleCreateInvoice = (id: string) => {
-    const store = stores.find(s => s.id === id);
-    alert(`إنشاء فاتورة للمتجر: ${store?.name} - هذه الميزة قيد التطوير`);
+  const handleCreateInvoiceWithLoading = (id: string) => {
+    if (actionLoading === id) return;
+    onCreateInvoice(id);
   };
 
   // معالجات الفلاتر
@@ -198,6 +202,22 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
             إدارة ومراقبة جميع المتاجر المسجلة في المنصة
           </p>
         </div>
+        
+        {/* زر إعادة التحميل */}
+        {onRefresh && (
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing || loading}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              isDark
+                ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+            } ${(refreshing || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            إعادة تحميل
+          </button>
+        )}
       </div>
 
       {/* Statistics Cards */}
@@ -252,24 +272,24 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
             stores={currentData}
             loading={loading}
             formatCurrency={formatCurrency}
-            onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onBan={handleBan}
-            onUnban={handleUnban}
-            onCreateInvoice={handleCreateInvoice}
+            onView={handleViewWithLoading}
+            onEdit={handleEditWithLoading}
+            onDelete={handleDeleteWithLoading}
+            onBan={handleBanWithLoading}
+            onUnban={handleUnbanWithLoading}
+            onCreateInvoice={handleCreateInvoiceWithLoading}
           />
         ) : (
           <StoresTable
             stores={currentData}
             loading={loading}
             formatCurrency={formatCurrency}
-            onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onBan={handleBan}
-            onUnban={handleUnban}
-            onCreateInvoice={handleCreateInvoice}
+            onView={handleViewWithLoading}
+            onEdit={handleEditWithLoading}
+            onDelete={handleDeleteWithLoading}
+            onBan={handleBanWithLoading}
+            onUnban={handleUnbanWithLoading}
+            onCreateInvoice={handleCreateInvoiceWithLoading}
           />
         )}
 
@@ -282,7 +302,7 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
           startIndex={startIndex}
           endIndex={endIndex}
           searchTerm={searchTerm}
-          totalData={stores.length}
+          totalData={currentStores.length}
           onPageChange={setCurrentPage}
           onItemsPerPageChange={handleItemsPerPageChange}
         />
@@ -295,6 +315,18 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
         onClose={() => setDetailsPopup({ isOpen: false, store: null })}
         formatCurrency={formatCurrency}
       />
+
+      {/* Loading Overlay for Actions */}
+      {actionLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50">
+          <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} p-6 rounded-lg shadow-lg flex items-center gap-3`}>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+            <span className={isDark ? 'text-white' : 'text-gray-900'}>
+              جاري تنفيذ العملية...
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
