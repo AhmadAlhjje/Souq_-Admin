@@ -70,7 +70,7 @@ export interface APIStore {
   totalRevenue: number;
   totalOrders: number;
   thisMonthRevenue: number;
-  Products?: ApiProduct[]; // اختياري للمتاجر مع المنتجات
+  Products?: ApiProduct[]; 
 }
 
 // إنشاء متجر جديد

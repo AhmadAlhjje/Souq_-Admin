@@ -146,15 +146,39 @@ function ProductContent() {
         const storeData = await getStore(parseInt(storeId));
 
         console.log("✅ تم جلب البيانات:", storeData);
-        setStoreInfo(storeData);
 
-        // تحويل المنتجات
-        const convertedProducts = storeData.Products.map((product) =>
-          convertApiProductToProduct(product, storeData)
-        );
+        // التحقق من وجود Products قبل المعالجة
+        if (
+          storeData &&
+          storeData.Products &&
+          Array.isArray(storeData.Products)
+        ) {
+          // إنشاء كائن متجر مع التأكد من وجود Products
+          const storeWithProducts: ApiStore = {
+            ...storeData,
+            Products: storeData.Products,
+          };
 
-        setProducts(convertedProducts);
-        console.log(`✅ تم تحويل ${convertedProducts.length} منتج`);
+          setStoreInfo(storeWithProducts);
+
+          // تحويل المنتجات
+          const convertedProducts = storeData.Products.map((product) =>
+            convertApiProductToProduct(product, storeWithProducts)
+          );
+
+          setProducts(convertedProducts);
+          console.log(`✅ تم تحويل ${convertedProducts.length} منتج`);
+        } else {
+          // في حالة عدم وجود منتجات، قم بإنشاء كائن متجر بمصفوفة فارغة
+          const storeWithProducts: ApiStore = {
+            ...storeData,
+            Products: [],
+          };
+
+          setStoreInfo(storeWithProducts);
+          setProducts([]);
+          console.log("⚠️ المتجر لا يحتوي على منتجات");
+        }
       } catch (err: any) {
         console.error("❌ خطأ في جلب البيانات:", err);
         setError(

@@ -31,3 +31,35 @@ export interface StoreResponse {
     totalSiteRevenue: number;
   };
 }
+
+// @/types/store.ts
+
+export interface StoreEntity {
+  id: string;
+  name: string;
+  category: string;
+  rating: number;
+  website?: string;
+  totalSales: number;
+  totalOrders: number;
+  monthlySales: number;
+  status: 'active' | 'suspended';
+  owner: {
+    name: string;
+    email: string;
+    phone: string;
+    avatar?: string;
+  };
+}
+
+export interface StoresTableProps {
+  stores: StoreEntity[];
+  loading: boolean;
+  formatCurrency: (amount: number) => string;
+  onView: (id: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onBan: (id: string) => void;
+  onUnban: (id: string) => void;
+  onCreateInvoice: (id: string) => void;
+}
