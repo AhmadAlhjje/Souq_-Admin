@@ -25,3 +25,21 @@ export const updateProgrammaticShipped = async (storeId: number) => {
   console.log("✅ Programmatic update response:", response.data);
   return response.data;
 };
+
+// ✅ جلب التصفيات المعلقة
+export const getPendingSettlements = async () => {
+  console.log(`📡 Fetching pending settlements`);
+  const response = await api.get("/orders/pending-settlements");
+  console.log("✅ Pending settlements response:", response.data);
+  return response.data;
+};
+
+// ✅ الموافقة على تصفية متجر
+export const approveSettlement = async (storeId: number) => {
+  console.log(`📡 Approving settlement for store=${storeId}`);
+  const response = await api.post(
+    `/orders/store/${storeId}/approve-settlement`
+  );
+  console.log("✅ Approve settlement response:", response.data);
+  return response.data;
+};
