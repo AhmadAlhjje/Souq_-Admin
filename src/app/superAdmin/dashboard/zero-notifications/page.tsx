@@ -1,10 +1,19 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Eye, Check, Store, User, Calendar, DollarSign, Package, X } from 'lucide-react';
-import { getPendingSettlements, approveSettlement } from '@/api/orders';
-import { PendingSettlementsResponse, PendingStore } from '@/types/settlements';
-import { useToast } from '@/hooks/useToast';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Eye,
+  Check,
+  Store,
+  User,
+  Calendar,
+  DollarSign,
+  Package,
+  X,
+} from "lucide-react";
+import { getPendingSettlements, approveSettlement } from "@/api/orders";
+import { PendingSettlementsResponse, PendingStore } from "@/types/settlements";
+import { useToast } from "@/hooks/useToast";
 
 const PendingSettlementsPage: React.FC = () => {
   const [data, setData] = useState<PendingSettlementsResponse | null>(null);
@@ -14,26 +23,27 @@ const PendingSettlementsPage: React.FC = () => {
   const [approveLoading, setApproveLoading] = useState<number | null>(null);
   const { showToast } = useToast();
 
-  // تحميل البيانات
-  useEffect(() => {
-    loadPendingSettlements();
-  }, []);
+  const loadPendingSettlements = useCallback(async () => {
+  try {
+    setLoading(true);
+    const response = await getPendingSettlements();
+    setData(response);
+  } catch (error: any) {
+    console.error("Error loading pending settlements:", error);
+    const errorMessage =
+      error?.response?.data?.error ||
+      error?.response?.data?.message ||
+      "حدث خطأ أثناء تحميل البيانات";
+    showToast(errorMessage, "error");
+  } finally {
+    setLoading(false);
+  }
+}, [showToast]); 
 
-  const loadPendingSettlements = async () => {
-    try {
-      setLoading(true);
-      const response = await getPendingSettlements();
-      setData(response);
-    } catch (error: any) {
-      console.error('Error loading pending settlements:', error);
-      const errorMessage = error?.response?.data?.error || 
-                          error?.response?.data?.message || 
-                          'حدث خطأ أثناء تحميل البيانات';
-      showToast(errorMessage, 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+// تحميل البيانات
+useEffect(() => {
+  loadPendingSettlements();
+}, [loadPendingSettlements]);
 
   // عرض التفاصيل
   const handleViewDetails = (store: PendingStore) => {
@@ -46,23 +56,24 @@ const PendingSettlementsPage: React.FC = () => {
     try {
       setApproveLoading(storeId);
       const response = await approveSettlement(storeId);
-      
+
       if (response?.data?.message) {
-        showToast(response.data.message, 'success');
+        showToast(response.data.message, "success");
       } else if (response?.message) {
-        showToast(response.message, 'success');
+        showToast(response.message, "success");
       } else {
-        showToast('تم قبول التصفير بنجاح', 'success');
+        showToast("تم قبول التصفير بنجاح", "success");
       }
-      
+
       // إعادة تحميل البيانات
       await loadPendingSettlements();
     } catch (error: any) {
-      console.error('Error approving settlement:', error);
-      const errorMessage = error?.response?.data?.error || 
-                          error?.response?.data?.message || 
-                          'حدث خطأ أثناء قبول التصفير';
-      showToast(errorMessage, 'error');
+      console.error("Error approving settlement:", error);
+      const errorMessage =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        "حدث خطأ أثناء قبول التصفير";
+      showToast(errorMessage, "error");
     } finally {
       setApproveLoading(null);
     }
@@ -74,12 +85,12 @@ const PendingSettlementsPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("ar-SA", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -101,7 +112,9 @@ const PendingSettlementsPage: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center py-12">
             <Package className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">لا توجد تصفيات معلقة</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              لا توجد تصفيات معلقة
+            </h3>
             <p className="text-gray-600">جميع التصفيات تم معالجتها</p>
           </div>
         </div>
@@ -116,45 +129,55 @@ const PendingSettlementsPage: React.FC = () => {
       <div className="max-w-6xl mx-auto space-y-6">
         {/* العنوان والإحصائيات العامة */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">التصفيات المعلقة</h1>
-          
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">
+            التصفيات المعلقة
+          </h1>
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-blue-50 rounded-xl p-4">
               <div className="flex items-center gap-3">
                 <Store className="text-blue-600" size={24} />
                 <div>
                   <p className="text-sm text-blue-600">إجمالي المتاجر</p>
-                  <p className="text-xl font-bold text-blue-800">{summary.total_stores}</p>
+                  <p className="text-xl font-bold text-blue-800">
+                    {summary.total_stores}
+                  </p>
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-green-50 rounded-xl p-4">
               <div className="flex items-center gap-3">
                 <Package className="text-green-600" size={24} />
                 <div>
                   <p className="text-sm text-green-600">إجمالي الطلبات</p>
-                  <p className="text-xl font-bold text-green-800">{summary.total_orders}</p>
+                  <p className="text-xl font-bold text-green-800">
+                    {summary.total_orders}
+                  </p>
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-orange-50 rounded-xl p-4">
               <div className="flex items-center gap-3">
                 <DollarSign className="text-orange-600" size={24} />
                 <div>
                   <p className="text-sm text-orange-600">إجمالي المبلغ</p>
-                  <p className="text-xl font-bold text-orange-800">{summary.total_amount} {metadata.currency}</p>
+                  <p className="text-xl font-bold text-orange-800">
+                    {summary.total_amount} {metadata.currency}
+                  </p>
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-purple-50 rounded-xl p-4">
               <div className="flex items-center gap-3">
                 <Calendar className="text-purple-600" size={24} />
                 <div>
                   <p className="text-sm text-purple-600">متوسط لكل متجر</p>
-                  <p className="text-xl font-bold text-purple-800">{summary.average_amount_per_store} {metadata.currency}</p>
+                  <p className="text-xl font-bold text-purple-800">
+                    {summary.average_amount_per_store} {metadata.currency}
+                  </p>
                 </div>
               </div>
             </div>
@@ -167,25 +190,44 @@ const PendingSettlementsPage: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">اسم المتجر</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">صاحب المتجر</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">عدد الطلبات</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">إجمالي المبلغ</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">تاريخ الطلب</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">الإجراءات</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">
+                    اسم المتجر
+                  </th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">
+                    صاحب المتجر
+                  </th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">
+                    عدد الطلبات
+                  </th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">
+                    إجمالي المبلغ
+                  </th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-900">
+                    تاريخ الطلب
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">
+                    الإجراءات
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {stores.map((store) => (
-                  <tr key={store.store_info.store_id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={store.store_info.store_id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                           <Store className="text-blue-600" size={20} />
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{store.store_info.store_name}</p>
-                          <p className="text-sm text-gray-500">{store.store_info.store_address}</p>
+                          <p className="font-medium text-gray-900">
+                            {store.store_info.store_name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {store.store_info.store_address}
+                          </p>
                         </div>
                       </div>
                     </td>
@@ -193,8 +235,12 @@ const PendingSettlementsPage: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <User className="text-gray-400" size={16} />
                         <div>
-                          <p className="text-gray-900">{store.store_info.owner.username}</p>
-                          <p className="text-sm text-gray-500">{store.store_info.owner.whatsapp_number}</p>
+                          <p className="text-gray-900">
+                            {store.store_info.owner.username}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {store.store_info.owner.whatsapp_number}
+                          </p>
                         </div>
                       </div>
                     </td>
@@ -221,8 +267,12 @@ const PendingSettlementsPage: React.FC = () => {
                           عرض التفاصيل
                         </button>
                         <button
-                          onClick={() => handleApproveSettlement(store.store_info.store_id)}
-                          disabled={approveLoading === store.store_info.store_id}
+                          onClick={() =>
+                            handleApproveSettlement(store.store_info.store_id)
+                          }
+                          disabled={
+                            approveLoading === store.store_info.store_id
+                          }
                           className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           {approveLoading === store.store_info.store_id ? (
@@ -259,56 +309,80 @@ const PendingSettlementsPage: React.FC = () => {
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6 space-y-6">
               {/* معلومات المتجر */}
               <div className="bg-blue-50 rounded-xl p-4">
-                <h3 className="font-semibold text-blue-900 mb-3">معلومات المتجر</h3>
+                <h3 className="font-semibold text-blue-900 mb-3">
+                  معلومات المتجر
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-blue-600">اسم المتجر</p>
-                    <p className="font-medium">{selectedStore.store_info.store_name}</p>
+                    <p className="font-medium">
+                      {selectedStore.store_info.store_name}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-blue-600">العنوان</p>
-                    <p className="font-medium">{selectedStore.store_info.store_address}</p>
+                    <p className="font-medium">
+                      {selectedStore.store_info.store_address}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-blue-600">اسم المالك</p>
-                    <p className="font-medium">{selectedStore.store_info.owner.username}</p>
+                    <p className="font-medium">
+                      {selectedStore.store_info.owner.username}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-blue-600">رقم الواتساب</p>
-                    <p className="font-medium">{selectedStore.store_info.owner.whatsapp_number}</p>
+                    <p className="font-medium">
+                      {selectedStore.store_info.owner.whatsapp_number}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* الملخص */}
               <div className="bg-green-50 rounded-xl p-4">
-                <h3 className="font-semibold text-green-900 mb-3">ملخص التصفية</h3>
+                <h3 className="font-semibold text-green-900 mb-3">
+                  ملخص التصفية
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <p className="text-sm text-green-600">عدد الطلبات</p>
-                    <p className="text-xl font-bold text-green-800">{selectedStore.summary.orders_count}</p>
+                    <p className="text-xl font-bold text-green-800">
+                      {selectedStore.summary.orders_count}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-green-600">إجمالي المبلغ</p>
-                    <p className="text-xl font-bold text-green-800">{selectedStore.summary.total_amount} {metadata.currency}</p>
+                    <p className="text-xl font-bold text-green-800">
+                      {selectedStore.summary.total_amount} {metadata.currency}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-green-600">متوسط قيمة الطلب</p>
-                    <p className="text-xl font-bold text-green-800">{selectedStore.summary.average_order_value} {metadata.currency}</p>
+                    <p className="text-xl font-bold text-green-800">
+                      {selectedStore.summary.average_order_value}{" "}
+                      {metadata.currency}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* تفاصيل الطلبات */}
               <div>
-                <h3 className="font-semibold text-gray-900 mb-3">تفاصيل الطلبات</h3>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  تفاصيل الطلبات
+                </h3>
                 <div className="space-y-3">
                   {selectedStore.orders.map((order) => (
-                    <div key={order.order_id} className="border border-gray-200 rounded-xl p-4">
+                    <div
+                      key={order.order_id}
+                      className="border border-gray-200 rounded-xl p-4"
+                    >
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                           <p className="text-sm text-gray-600">رقم الطلب</p>
@@ -316,15 +390,23 @@ const PendingSettlementsPage: React.FC = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">قيمة الطلب</p>
-                          <p className="font-medium text-green-600">{order.total_price} {metadata.currency}</p>
+                          <p className="font-medium text-green-600">
+                            {order.total_price} {metadata.currency}
+                          </p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">تاريخ الإنشاء</p>
-                          <p className="font-medium">{formatDate(order.created_at)}</p>
+                          <p className="font-medium">
+                            {formatDate(order.created_at)}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600">تاريخ طلب التصفية</p>
-                          <p className="font-medium">{formatDate(order.settlement_requested_at)}</p>
+                          <p className="text-sm text-gray-600">
+                            تاريخ طلب التصفية
+                          </p>
+                          <p className="font-medium">
+                            {formatDate(order.settlement_requested_at)}
+                          </p>
                         </div>
                       </div>
                     </div>
