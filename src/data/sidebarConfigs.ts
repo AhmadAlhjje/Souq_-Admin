@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   Store,
-  HelpCircle,
   LogOut,
   User,
   Receipt,
@@ -68,7 +67,7 @@ export const getAdminSidebarConfig = (t: any): SidebarConfig => ({
       id: "logout",
       label: t("sidebar.bottom.logout"),
       icon: LogOut,
-      href: "/logout",
+      href: "/LoginPage",
     },
   ],
 });

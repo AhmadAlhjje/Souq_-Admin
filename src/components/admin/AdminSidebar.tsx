@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import useTheme from "@/hooks/useTheme";
+import { useLogout } from "@/hooks/useLogout";
 import { SidebarConfig } from "@/types/admin";
 import SidebarHeader from "./sidebar/SidebarHeader";
 import SidebarMenu from "./sidebar/SidebarMenu";
@@ -13,7 +14,7 @@ import { getAdminSidebarConfig } from "@/data/sidebarConfigs";
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
-  config?: SidebarConfig; // جعل config اختياري
+  config?: SidebarConfig;
   className?: string;
 }
 
@@ -25,6 +26,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({
 }) => {
   const { isDark } = useTheme();
   const { t } = useTranslation();
+  const { logout } = useLogout();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   // إنشاء config افتراضي إذا لم يتم تمريره
@@ -38,7 +40,14 @@ const AdminSidebar: React.FC<SidebarProps> = ({
     );
   };
 
-  const handleItemClick = () => {
+  const handleItemClick = (itemId: string) => {
+    // التعامل مع تسجيل الخروج بشكل خاص
+    if (itemId === "logout") {
+      logout();
+      return;
+    }
+
+    // إغلاق الساي بار في الهواتف المحمولة
     if (window.innerWidth < 768) {
       onToggle();
     }

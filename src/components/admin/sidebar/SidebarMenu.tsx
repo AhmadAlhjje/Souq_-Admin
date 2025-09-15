@@ -9,7 +9,7 @@ interface SidebarMenuProps {
   isOpen: boolean;
   expandedItems: string[];
   onToggleExpanded: (itemId: string) => void;
-  onItemClick: () => void;
+  onItemClick: (itemId: string, href?: string) => void; // تم تعديل التوقيع
   className?: string;
 }
 
