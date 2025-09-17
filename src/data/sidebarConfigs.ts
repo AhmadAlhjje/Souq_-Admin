@@ -30,18 +30,18 @@ export const getAdminSidebarConfig = (t: any): SidebarConfig => ({
       icon: Building2, // بدلاً من Storefront
       href: "/superAdmin/dashboard/StoresPage",
     },
-    {
-      id: "invoices",
-      label: t("sidebar.invoices"), // "كشف الفواتير"
-      icon: Receipt, // أو FileText
-      href: "/superAdmin/dashboard/invoices",
-    },
-    {
-      id: "orders",
-      label: t("sidebar.orders.main"), // "الطلبات"
-      icon: Package,
-      href: "/superAdmin/dashboard/orders",
-    },
+    // {
+    //   id: "invoices",
+    //   label: t("sidebar.invoices"), // "كشف الفواتير"
+    //   icon: Receipt, // أو FileText
+    //   href: "/superAdmin/dashboard/invoices",
+    // },
+    // {
+    //   id: "orders",
+    //   label: t("sidebar.orders.main"), // "الطلبات"
+    //   icon: Package,
+    //   href: "/superAdmin/dashboard/orders",
+    // },
     {
       id: "zero-notifications",
       label: t("sidebar.zeroNotifications"), // "عرض اشعارات التصفير"
@@ -49,12 +49,12 @@ export const getAdminSidebarConfig = (t: any): SidebarConfig => ({
       href: "/superAdmin/dashboard/zero-notifications",
       // badge: 5, // يمكن إضافة عدد الإشعارات
     },
-    {
-      id: "profile",
-      label: t("sidebar.profile"),
-      icon: User,
-      href: "/superAdmin/dashboard/profile",
-    },
+    // {
+    //   id: "profile",
+    //   label: t("sidebar.profile"),
+    //   icon: User,
+    //   href: "/superAdmin/dashboard/profile",
+    // },
   ],
   bottomMenuItems: [
     // {

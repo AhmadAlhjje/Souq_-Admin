@@ -9,7 +9,8 @@ interface AdminRecentOrderItemProps {
   orderNumber: string;
   timeAgo: string;
   amount: number;
-  status: 'completed' | 'pending' | 'cancelled';
+  status: 'completed' | 'pending' | 'cancelled' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'monitored';
+  storeName?: string;
   onClick?: () => void;
 }
 
@@ -18,25 +19,53 @@ const AdminRecentOrderItem: React.FC<AdminRecentOrderItemProps> = ({
   timeAgo,
   amount,
   status,
+  storeName,
   onClick,
 }) => {
   const { isDark } = useTheme();
 
   const getStatusVariant = () => {
     switch (status) {
-      case 'completed': return 'success';
-      case 'pending': return 'warning';
-      case 'cancelled': return 'danger';
-      default: return 'info';
+      case 'completed':
+      case 'delivered':
+        return 'success';
+      case 'pending':
+        return 'warning';
+      case 'cancelled':
+        return 'danger';
+      case 'confirmed':
+        return 'info';
+      case 'processing':
+        return 'warning';
+      case 'shipped':
+        return 'info';
+      case 'monitored':
+        return 'warning';
+      default:
+        return 'info';
     }
   };
 
   const getStatusLabel = () => {
     switch (status) {
-      case 'completed': return 'مكتمل';
-      case 'pending': return 'قيد المعالجة';
-      case 'cancelled': return 'ملغي';
-      default: return 'غير محدد';
+      case 'completed':
+        return 'مكتمل';
+      case 'pending':
+        return 'قيد الانتظار';
+      case 'cancelled':
+        return 'ملغي';
+      case 'confirmed':
+        return 'مؤكد';
+      case 'processing':
+        return 'قيد المعالجة';
+      case 'shipped':
+        return 'تم الشحن';
+      case 'delivered':
+        return 'تم التسليم';
+      case 'monitored':
+        return 'مراقب';
+      default:
+        return 'غير محدد';
     }
   };
 
@@ -71,6 +100,13 @@ const AdminRecentOrderItem: React.FC<AdminRecentOrderItemProps> = ({
           }`}>
             {orderNumber}
           </p>
+          {storeName && (
+            <p className={`text-xs ${
+              isDark ? 'text-gray-500' : 'text-[#888888]'
+            }`}>
+              {storeName}
+            </p>
+          )}
           <p className={`text-xs ${
             isDark ? 'text-gray-400' : 'text-[#666666]'
           }`}>

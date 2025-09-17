@@ -11,6 +11,8 @@ import {
 } from "@/api/stores";
 import { StoreResponse } from "@/types/store";
 import { useToast } from "@/hooks/useToast";
+import * as XLSX from 'xlsx'; // مكتبة لإنشاء ملفات Excel
+import { getStoreOrdersStats } from "@/api/orders";
 
 // واجهة الإحصائيات
 interface Statistics {
@@ -18,6 +20,24 @@ interface Statistics {
   activeStores: number;
   blockedStores: number;
   totalSiteRevenue: number;
+}
+
+// واجهة بيانات الطلب
+interface OrderData {
+  order_id: number;
+  purchase_id: string;
+  total_price: string;
+  status: string;
+  settlement_status: string;
+  created_at: string;
+  customer_name: string;
+  customer_phone: string;
+  shipping_address: string;
+  shipping_method: string;
+  shipping_status: string;
+  product_names: string;
+  quantities: string;
+  tracking_number?: string;
 }
 
 const StoresPage = () => {
@@ -261,18 +281,231 @@ const StoresPage = () => {
     }
   };
 
-  // دالة إنشاء فاتورة
-  const handleCreateInvoice = (storeId: string) => {
+  // دالة تحويل بيانات الطلب للفاتورة المحسّنة
+  const transformOrderForInvoice = (order: any): OrderData => {
+    // جمع أسماء المنتجات والكميات
+    const productNames = order.OrderItems?.map((item: any) => item.Product?.name || 'غير محدد').join(', ') || 'غير محدد';
+    const quantities = order.OrderItems?.map((item: any) => item.quantity).join(', ') || '0';
+
+    return {
+      order_id: order.order_id,
+      purchase_id: order.purchase_id,
+      total_price: order.total_price,
+      status: order.status,
+      settlement_status: order.settlement_status,
+      created_at: new Date(order.created_at).toLocaleString('ar-SA'),
+      customer_name: order.Shipping?.customer_name || 'غير محدد',
+      customer_phone: order.Shipping?.customer_phone || 'غير محدد',
+      shipping_address: order.Shipping?.shipping_address || 'غير محدد',
+      shipping_method: order.Shipping?.shipping_method || 'غير محدد',
+      shipping_status: order.Shipping?.shipping_status || 'غير محدد',
+      product_names: productNames,
+      quantities: quantities,
+      tracking_number: order.Shipping?.tracking_number || 'غير محدد',
+    };
+  };
+
+  // دالة إنشاء فاتورة Excel محسّنة
+  const handleCreateInvoice = async (storeId: string) => {
     const store = stores.find((s) => s.id === storeId);
     if (!store) {
       showToast("لم يتم العثور على المتجر", "error");
       return;
     }
 
-    console.log("📄 إنشاء فاتورة للمتجر:", storeId);
+    try {
+      console.log("📄 بدء إنشاء فاتورة للمتجر:", storeId);
+      
+      // تعيين حالة التحميل
+      setActionLoading(storeId);
+      
+      showToast("جاري تحضير الفاتورة...", "info");
 
-    // يمكن إضافة منطق إنشاء الفاتورة هنا
-    showToast(`إنشاء فاتورة لمتجر "${store.name}" - ميزة قيد التطوير`, "info");
+      // جلب بيانات الطلبات والإحصائيات
+      const storeOrdersData = await getStoreOrdersStats(parseInt(storeId));
+      
+      console.log("📊 بيانات طلبات المتجر:", storeOrdersData);
+
+      // تصنيف الطلبات حسب settlement_status
+      const settledOrders = storeOrdersData.allOrders.orders.filter((order: any) => order.settlement_status === 'settled');
+      const settlementRequestedOrders = storeOrdersData.allOrders.orders.filter((order: any) => order.settlement_status === 'settlement_requested');
+      const notSettledOrders = storeOrdersData.allOrders.orders.filter((order: any) => order.settlement_status === 'not_settled');
+
+      // حساب الإحصائيات لكل تصنيف
+      const settledRevenue = settledOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_price), 0);
+      const settlementRequestedRevenue = settlementRequestedOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_price), 0);
+      const notSettledRevenue = notSettledOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_price), 0);
+
+      // إنشاء workbook جديد
+      const wb = XLSX.utils.book_new();
+
+      // إعداد معلومات أساسية عن المتجر مع الإحصائيات المحسّنة
+      const storeInfo = [
+        ['معلومات المتجر', ''],
+        ['اسم المتجر', storeOrdersData.storeName],
+        ['رقم المتجر', storeId],
+        ['عنوان المتجر', store.address || 'غير محدد'],
+        ['تاريخ إنشاء الفاتورة', new Date().toLocaleString('ar-SA')],
+        ['', ''],
+        ['الإحصائيات العامة', ''],
+        ['إجمالي الطلبات', storeOrdersData.statistics.totalOrders],
+        ['إجمالي الإيرادات', `${storeOrdersData.statistics.totalRevenue.toFixed(2)} ر.س`],
+        ['متوسط قيمة الطلب', `${storeOrdersData.statistics.averageOrderValue.toFixed(2)} ر.س`],
+        ['', ''],
+        ['تصنيف الطلبات حسب حالة التسوية', ''],
+        ['الطلبات المسوّاة (Settled)', settledOrders.length],
+        ['إيرادات الطلبات المسوّاة', `${settledRevenue.toFixed(2)} ر.س`],
+        ['الطلبات المطلوبة التسوية (Settlement Requested)', settlementRequestedOrders.length],
+        ['إيرادات الطلبات المطلوبة التسوية', `${settlementRequestedRevenue.toFixed(2)} ر.س`],
+        ['الطلبات غير المسوّاة (Not Settled)', notSettledOrders.length],
+        ['إيرادات الطلبات غير المسوّاة', `${notSettledRevenue.toFixed(2)} ر.س`],
+        ['', ''],
+        ['تصنيف الطلبات حسب حالة الشحن', ''],
+        ['الطلبات المشحونة', storeOrdersData.statistics.shippedCount],
+        ['إيرادات الطلبات المشحونة', `${storeOrdersData.statistics.shippedRevenue.toFixed(2)} ر.س`],
+        ['الطلبات غير المشحونة', storeOrdersData.statistics.unshippedCount],
+        ['إيرادات الطلبات غير المشحونة', `${storeOrdersData.statistics.unshippedRevenue.toFixed(2)} ر.س`],
+        ['الطلبات المرصودة', storeOrdersData.statistics.monitoredCount],
+        ['إيرادات الطلبات المرصودة', `${storeOrdersData.statistics.monitoredRevenue.toFixed(2)} ر.س`],
+      ];
+
+      // إضافة sheet معلومات المتجر
+      const storeInfoWS = XLSX.utils.aoa_to_sheet(storeInfo);
+      XLSX.utils.book_append_sheet(wb, storeInfoWS, 'معلومات المتجر');
+
+      // تعريف العناوين المحسّنة
+      const enhancedHeaders = [
+        'رقم الطلب',
+        'معرف الشراء',
+        'إجمالي المبلغ (ر.س)',
+        'حالة الطلب',
+        'حالة التسوية',
+        'تاريخ الإنشاء',
+        'اسم العميل',
+        'هاتف العميل',
+        'عنوان الشحن',
+        'طريقة الشحن',
+        'حالة الشحن',
+        'رقم التتبع',
+        'المنتجات',
+        'الكميات',
+        'نوع التصنيف'
+      ];
+
+      // دالة مساعدة لإنشاء sheet للطلبات مع تصنيف محسّن
+      const createEnhancedOrdersSheet = (orders: any[], sheetName: string, classification: string) => {
+        if (!orders || orders.length === 0) {
+          const emptyData = [['لا توجد طلبات في هذا القسم']];
+          return XLSX.utils.aoa_to_sheet(emptyData);
+        }
+
+        const transformedOrders = orders.map(transformOrderForInvoice);
+        
+        const data = [
+          enhancedHeaders,
+          ...transformedOrders.map(order => [
+            order.order_id,
+            order.purchase_id,
+            `${parseFloat(order.total_price).toFixed(2)}`,
+            order.status,
+            order.settlement_status,
+            order.created_at,
+            order.customer_name,
+            order.customer_phone,
+            order.shipping_address,
+            order.shipping_method,
+            order.shipping_status,
+            order.tracking_number,
+            order.product_names,
+            order.quantities,
+            classification // إضافة تصنيف إضافي
+          ])
+        ];
+
+        return XLSX.utils.aoa_to_sheet(data);
+      };
+
+      // إضافة sheets للطلبات حسب حالة التسوية
+      const settledOrdersWS = createEnhancedOrdersSheet(settledOrders, 'الطلبات المسوّاة', 'مسوّاة');
+      XLSX.utils.book_append_sheet(wb, settledOrdersWS, 'الطلبات المسوّاة');
+
+      const settlementRequestedOrdersWS = createEnhancedOrdersSheet(settlementRequestedOrders, 'الطلبات المطلوبة التسوية', 'مطلوبة التسوية');
+      XLSX.utils.book_append_sheet(wb, settlementRequestedOrdersWS, 'الطلبات المطلوبة التسوية');
+
+      const notSettledOrdersWS = createEnhancedOrdersSheet(notSettledOrders, 'الطلبات غير المسوّاة', 'غير مسوّاة');
+      XLSX.utils.book_append_sheet(wb, notSettledOrdersWS, 'الطلبات غير المسوّاة');
+
+      // إضافة sheets للطلبات حسب حالة الشحن (الطرق الأصلية)
+      const shippedOrdersWS = createEnhancedOrdersSheet(storeOrdersData.shippedOrders.orders, 'الطلبات المشحونة', 'مشحونة');
+      XLSX.utils.book_append_sheet(wb, shippedOrdersWS, 'الطلبات المشحونة');
+
+      const unshippedOrdersWS = createEnhancedOrdersSheet(storeOrdersData.unshippedOrders.orders, 'الطلبات غير المشحونة', 'غير مشحونة');
+      XLSX.utils.book_append_sheet(wb, unshippedOrdersWS, 'الطلبات غير المشحونة');
+
+      const monitoredOrdersWS = createEnhancedOrdersSheet(storeOrdersData.monitoredOrders.orders, 'الطلبات المرصودة', 'مرصودة');
+      XLSX.utils.book_append_sheet(wb, monitoredOrdersWS, 'الطلبات المرصودة');
+
+      // إضافة sheet موحد لجميع الطلبات مع تصنيف شامل
+      const createUnifiedOrdersSheet = () => {
+        const allOrdersWithClassification = storeOrdersData.allOrders.orders.map((order: any) => ({
+          ...transformOrderForInvoice(order),
+          settlement_classification: order.settlement_status === 'settled' ? 'مسوّاة' : 
+                                     order.settlement_status === 'settlement_requested' ? 'مطلوبة التسوية' : 'غير مسوّاة',
+          shipping_classification: order.status === 'shipped' ? 'مشحونة' : 
+                                  order.status === 'pending' ? 'غير مشحونة' : 'مرصودة'
+        }));
+
+        const unifiedHeaders = [
+          ...enhancedHeaders,
+          'تصنيف التسوية',
+          'تصنيف الشحن'
+        ];
+
+        const data = [
+          unifiedHeaders,
+          ...allOrdersWithClassification.map((order:any) => [
+            order.order_id,
+            order.purchase_id,
+            `${parseFloat(order.total_price).toFixed(2)}`,
+            order.status,
+            order.settlement_status,
+            order.created_at,
+            order.customer_name,
+            order.customer_phone,
+            order.shipping_address,
+            order.shipping_method,
+            order.shipping_status,
+            order.tracking_number,
+            order.product_names,
+            order.quantities,
+            'شامل', // التصنيف العام
+            order.settlement_classification,
+            order.shipping_classification
+          ])
+        ];
+
+        return XLSX.utils.aoa_to_sheet(data);
+      };
+
+      const unifiedOrdersWS = createUnifiedOrdersSheet();
+      XLSX.utils.book_append_sheet(wb, unifiedOrdersWS, 'التقرير الشامل');
+
+      // تنسيق اسم الملف
+      const fileName = `فاتورة_شاملة_${storeOrdersData.storeName.replace(/[^\w\s]/gi, '')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      // تحميل الملف
+      XLSX.writeFile(wb, fileName);
+
+      console.log("✅ تم إنشاء الفاتورة المحسّنة بنجاح");
+      showToast(`تم إنشاء فاتورة شاملة لمتجر "${store.name}" وتحميلها بنجاح`, "success");
+
+    } catch (error: any) {
+      console.error("❌ خطأ في إنشاء الفاتورة:", error);
+      const errorMessage = error.message || "فشل في إنشاء الفاتورة";
+      showToast(errorMessage, "error");
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   // معالجة حالة الخطأ
