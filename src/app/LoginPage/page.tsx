@@ -43,6 +43,7 @@ const LoginPage = () => {
       const loginData = {
         username: signInData.username,
         password: signInData.password,
+        role: "admin",
       };
 
       const result = await loginUser(loginData);
