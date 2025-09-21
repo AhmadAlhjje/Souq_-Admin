@@ -28,7 +28,6 @@ interface OrderData {
   purchase_id: string;
   total_price: string;
   status: string;
-  settlement_status: string;
   created_at: string;
   customer_name: string;
   customer_phone: string;
@@ -281,7 +280,7 @@ const StoresPage = () => {
     }
   };
 
-  // دالة تحويل بيانات الطلب للفاتورة المحسّنة
+  // دالة تحويل بيانات الطلب للفاتورة
   const transformOrderForInvoice = (order: any): OrderData => {
     // جمع أسماء المنتجات والكميات
     const productNames = order.OrderItems?.map((item: any) => item.Product?.name || 'غير محدد').join(', ') || 'غير محدد';
@@ -292,7 +291,6 @@ const StoresPage = () => {
       purchase_id: order.purchase_id,
       total_price: order.total_price,
       status: order.status,
-      settlement_status: order.settlement_status,
       created_at: new Date(order.created_at).toLocaleString('ar-SA'),
       customer_name: order.Shipping?.customer_name || 'غير محدد',
       customer_phone: order.Shipping?.customer_phone || 'غير محدد',
@@ -305,7 +303,7 @@ const StoresPage = () => {
     };
   };
 
-  // دالة إنشاء فاتورة Excel محسّنة
+  // دالة إنشاء فاتورة Excel
   const handleCreateInvoice = async (storeId: string) => {
     const store = stores.find((s) => s.id === storeId);
     if (!store) {
@@ -326,20 +324,10 @@ const StoresPage = () => {
       
       console.log("📊 بيانات طلبات المتجر:", storeOrdersData);
 
-      // تصنيف الطلبات حسب settlement_status
-      const settledOrders = storeOrdersData.allOrders.orders.filter((order: any) => order.settlement_status === 'settled');
-      const settlementRequestedOrders = storeOrdersData.allOrders.orders.filter((order: any) => order.settlement_status === 'settlement_requested');
-      const notSettledOrders = storeOrdersData.allOrders.orders.filter((order: any) => order.settlement_status === 'not_settled');
-
-      // حساب الإحصائيات لكل تصنيف
-      const settledRevenue = settledOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_price), 0);
-      const settlementRequestedRevenue = settlementRequestedOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_price), 0);
-      const notSettledRevenue = notSettledOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_price), 0);
-
       // إنشاء workbook جديد
       const wb = XLSX.utils.book_new();
 
-      // إعداد معلومات أساسية عن المتجر مع الإحصائيات المحسّنة
+      // إعداد معلومات أساسية عن المتجر
       const storeInfo = [
         ['معلومات المتجر', ''],
         ['اسم المتجر', storeOrdersData.storeName],
@@ -351,14 +339,6 @@ const StoresPage = () => {
         ['إجمالي الطلبات', storeOrdersData.statistics.totalOrders],
         ['إجمالي الإيرادات', `${storeOrdersData.statistics.totalRevenue.toFixed(2)} $`],
         ['متوسط قيمة الطلب', `${storeOrdersData.statistics.averageOrderValue.toFixed(2)} $`],
-        ['', ''],
-        ['تصنيف الطلبات حسب حالة التسوية', ''],
-        ['الطلبات المسوّاة (Settled)', settledOrders.length],
-        ['إيرادات الطلبات المسوّاة', `${settledRevenue.toFixed(2)} $`],
-        ['الطلبات المطلوبة التسوية (Settlement Requested)', settlementRequestedOrders.length],
-        ['إيرادات الطلبات المطلوبة التسوية', `${settlementRequestedRevenue.toFixed(2)} $`],
-        ['الطلبات غير المسوّاة (Not Settled)', notSettledOrders.length],
-        ['إيرادات الطلبات غير المسوّاة', `${notSettledRevenue.toFixed(2)} $`],
         ['', ''],
         ['تصنيف الطلبات حسب حالة الشحن', ''],
         ['الطلبات المشحونة', storeOrdersData.statistics.shippedCount],
@@ -373,13 +353,12 @@ const StoresPage = () => {
       const storeInfoWS = XLSX.utils.aoa_to_sheet(storeInfo);
       XLSX.utils.book_append_sheet(wb, storeInfoWS, 'معلومات المتجر');
 
-      // تعريف العناوين المحسّنة
-      const enhancedHeaders = [
+      // تعريف العناوين
+      const headers = [
         'رقم الطلب',
         'معرف الشراء',
         'إجمالي المبلغ ($)',
         'حالة الطلب',
-        'حالة التسوية',
         'تاريخ الإنشاء',
         'اسم العميل',
         'هاتف العميل',
@@ -388,12 +367,11 @@ const StoresPage = () => {
         'حالة الشحن',
         'رقم التتبع',
         'المنتجات',
-        'الكميات',
-        'نوع التصنيف'
+        'الكميات'
       ];
 
-      // دالة مساعدة لإنشاء sheet للطلبات مع تصنيف محسّن
-      const createEnhancedOrdersSheet = (orders: any[], sheetName: string, classification: string) => {
+      // دالة مساعدة لإنشاء sheet للطلبات
+      const createOrdersSheet = (orders: any[], sheetName: string) => {
         if (!orders || orders.length === 0) {
           const emptyData = [['لا توجد طلبات في هذا القسم']];
           return XLSX.utils.aoa_to_sheet(emptyData);
@@ -402,13 +380,12 @@ const StoresPage = () => {
         const transformedOrders = orders.map(transformOrderForInvoice);
         
         const data = [
-          enhancedHeaders,
+          headers,
           ...transformedOrders.map(order => [
             order.order_id,
             order.purchase_id,
             `${parseFloat(order.total_price).toFixed(2)}`,
             order.status,
-            order.settlement_status,
             order.created_at,
             order.customer_name,
             order.customer_phone,
@@ -417,87 +394,35 @@ const StoresPage = () => {
             order.shipping_status,
             order.tracking_number,
             order.product_names,
-            order.quantities,
-            classification // إضافة تصنيف إضافي
+            order.quantities
           ])
         ];
 
         return XLSX.utils.aoa_to_sheet(data);
       };
 
-      // إضافة sheets للطلبات حسب حالة التسوية
-      const settledOrdersWS = createEnhancedOrdersSheet(settledOrders, 'الطلبات المسوّاة', 'مسوّاة');
-      XLSX.utils.book_append_sheet(wb, settledOrdersWS, 'الطلبات المسوّاة');
-
-      const settlementRequestedOrdersWS = createEnhancedOrdersSheet(settlementRequestedOrders, 'الطلبات المطلوبة التسوية', 'مطلوبة التسوية');
-      XLSX.utils.book_append_sheet(wb, settlementRequestedOrdersWS, 'الطلبات المطلوبة التسوية');
-
-      const notSettledOrdersWS = createEnhancedOrdersSheet(notSettledOrders, 'الطلبات غير المسوّاة', 'غير مسوّاة');
-      XLSX.utils.book_append_sheet(wb, notSettledOrdersWS, 'الطلبات غير المسوّاة');
-
-      // إضافة sheets للطلبات حسب حالة الشحن (الطرق الأصلية)
-      const shippedOrdersWS = createEnhancedOrdersSheet(storeOrdersData.shippedOrders.orders, 'الطلبات المشحونة', 'مشحونة');
+      // إضافة sheets للطلبات حسب حالة الشحن
+      const shippedOrdersWS = createOrdersSheet(storeOrdersData.shippedOrders.orders, 'الطلبات المشحونة');
       XLSX.utils.book_append_sheet(wb, shippedOrdersWS, 'الطلبات المشحونة');
 
-      const unshippedOrdersWS = createEnhancedOrdersSheet(storeOrdersData.unshippedOrders.orders, 'الطلبات غير المشحونة', 'غير مشحونة');
+      const unshippedOrdersWS = createOrdersSheet(storeOrdersData.unshippedOrders.orders, 'الطلبات غير المشحونة');
       XLSX.utils.book_append_sheet(wb, unshippedOrdersWS, 'الطلبات غير المشحونة');
 
-      const monitoredOrdersWS = createEnhancedOrdersSheet(storeOrdersData.monitoredOrders.orders, 'الطلبات المرصودة', 'مرصودة');
+      const monitoredOrdersWS = createOrdersSheet(storeOrdersData.monitoredOrders.orders, 'الطلبات المرصودة');
       XLSX.utils.book_append_sheet(wb, monitoredOrdersWS, 'الطلبات المرصودة');
 
-      // إضافة sheet موحد لجميع الطلبات مع تصنيف شامل
-      const createUnifiedOrdersSheet = () => {
-        const allOrdersWithClassification = storeOrdersData.allOrders.orders.map((order: any) => ({
-          ...transformOrderForInvoice(order),
-          settlement_classification: order.settlement_status === 'settled' ? 'مسوّاة' : 
-                                     order.settlement_status === 'settlement_requested' ? 'مطلوبة التسوية' : 'غير مسوّاة',
-          shipping_classification: order.status === 'shipped' ? 'مشحونة' : 
-                                  order.status === 'pending' ? 'غير مشحونة' : 'مرصودة'
-        }));
-
-        const unifiedHeaders = [
-          ...enhancedHeaders,
-          'تصنيف التسوية',
-          'تصنيف الشحن'
-        ];
-
-        const data = [
-          unifiedHeaders,
-          ...allOrdersWithClassification.map((order:any) => [
-            order.order_id,
-            order.purchase_id,
-            `${parseFloat(order.total_price).toFixed(2)}`,
-            order.status,
-            order.settlement_status,
-            order.created_at,
-            order.customer_name,
-            order.customer_phone,
-            order.shipping_address,
-            order.shipping_method,
-            order.shipping_status,
-            order.tracking_number,
-            order.product_names,
-            order.quantities,
-            'شامل', // التصنيف العام
-            order.settlement_classification,
-            order.shipping_classification
-          ])
-        ];
-
-        return XLSX.utils.aoa_to_sheet(data);
-      };
-
-      const unifiedOrdersWS = createUnifiedOrdersSheet();
-      XLSX.utils.book_append_sheet(wb, unifiedOrdersWS, 'التقرير الشامل');
+      // إضافة sheet موحد لجميع الطلبات
+      const allOrdersWS = createOrdersSheet(storeOrdersData.allOrders.orders, 'جميع الطلبات');
+      XLSX.utils.book_append_sheet(wb, allOrdersWS, 'جميع الطلبات');
 
       // تنسيق اسم الملف
-      const fileName = `فاتورة_شاملة_${storeOrdersData.storeName.replace(/[^\w\s]/gi, '')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      const fileName = `فاتورة_${storeOrdersData.storeName.replace(/[^\w\s]/gi, '')}_${new Date().toISOString().split('T')[0]}.xlsx`;
 
       // تحميل الملف
       XLSX.writeFile(wb, fileName);
 
-      console.log("✅ تم إنشاء الفاتورة المحسّنة بنجاح");
-      showToast(`تم إنشاء فاتورة شاملة لمتجر "${store.name}" وتحميلها بنجاح`, "success");
+      console.log("✅ تم إنشاء الفاتورة بنجاح");
+      showToast(`تم إنشاء فاتورة لمتجر "${store.name}" وتحميلها بنجاح`, "success");
 
     } catch (error: any) {
       console.error("❌ خطأ في إنشاء الفاتورة:", error);

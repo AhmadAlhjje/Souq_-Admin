@@ -60,11 +60,11 @@ const SignInForm: React.FC<SignInFormProps> = ({
       />
       
       {/* رابط نسيت كلمة المرور */}
-      <div className="text-left mb-4">
+      {/* <div className="text-left mb-4">
         <a href="#" className="text-xs sm:text-sm text-teal-500 hover:text-teal-600 transition-colors">
           نسيت كلمة المرور؟
         </a>
-      </div>
+      </div> */}
       
       <div className="pt-2">
         <button

@@ -569,7 +569,7 @@ const StoreDetailsPopup: React.FC<StoreDetailsPopupProps> = ({
               isDark ? "border-gray-700" : "border-gray-200"
             }`}
           >
-            <button
+            {/* <button
               onClick={() => openWhatsApp(store.owner.phone)}
               className={`px-6 py-2 rounded-lg border transition-colors flex items-center gap-2 ${
                 isDark
@@ -579,7 +579,7 @@ const StoreDetailsPopup: React.FC<StoreDetailsPopupProps> = ({
             >
               <MessageCircle className="w-4 h-4" />
               تواصل عبر واتساب
-            </button>
+            </button> */}
             <button
               onClick={onClose}
               className={`px-6 py-2 rounded-lg border transition-colors ${
