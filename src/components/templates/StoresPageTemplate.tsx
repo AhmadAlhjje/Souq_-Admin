@@ -202,22 +202,6 @@ const StoresPageTemplate: React.FC<StoresPageTemplateProps> = ({
             إدارة ومراقبة جميع المتاجر المسجلة في المنصة
           </p>
         </div>
-        
-        {/* زر إعادة التحميل */}
-        {onRefresh && (
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing || loading}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              isDark
-                ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-            } ${(refreshing || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            إعادة تحميل
-          </button>
-        )}
       </div>
 
       {/* Statistics Cards */}
