@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: chatapp-container
+    container_name: admin-chatapp-container
     ports:
       - "3006:3000"
     environment:
