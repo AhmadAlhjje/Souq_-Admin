@@ -10,7 +10,7 @@ services:
       - "3006:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_BASE_URL=http://109.199.102.40:4004
+      - NEXT_PUBLIC_BASE_URL=http://31.97.181.122:4004
     volumes:
       # إضافة volumes للبيانات المستمرة إذا لزم الأمر
       - ./logs:/app/logs
