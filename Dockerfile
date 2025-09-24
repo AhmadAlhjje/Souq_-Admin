@@ -2,11 +2,12 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# نسخ package files
-COPY package*.json ./
+# تثبيت الأدوات المطلوبة
+RUN apk add --no-cache libc6-compat
 
-# تثبيت التبعيات
-RUN npm install
+# نسخ package files وتثبيت التبعيات
+COPY package*.json ./
+RUN npm install --production
 
 # نسخ الكود المصدري
 COPY . .
@@ -14,13 +15,13 @@ COPY . .
 # بناء المشروع
 RUN npm run build
 
-# متغيرات البيئة
+# إعداد متغيرات البيئة
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# إنشاء مستخدم
+# إنشاء مستخدم لتشغيل الحاوية بدون صلاحيات root
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 RUN chown -R nextjs:nodejs /app
@@ -28,4 +29,5 @@ USER nextjs
 
 EXPOSE 3000
 
+# تشغيل السيرفر مباشرة بدون الاعتماد على standalone
 CMD ["npm", "start"]
