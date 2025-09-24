@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   chatapp:
     build:
@@ -9,7 +7,7 @@ services:
     ports:
       - "3006:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=production        # وضع الإنتاج
       - NEXT_PUBLIC_BASE_URL=http://31.97.181.122:4004
     volumes:
       - ./logs:/app/logs
@@ -20,6 +18,3 @@ services:
 networks:
   souq_network:
     external: true
-
-volumes:
-  app-data:
