@@ -2,23 +2,31 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# تثبيت الأدوات المطلوبة
 RUN apk add --no-cache libc6-compat
 
+# نسخ package files لتثبيت التبعيات
 COPY package*.json ./
 
-# تثبيت dependencies فقط (production) لتجنب تثبيت devDependencies
-RUN npm install --production
+# تثبيت جميع التبعيات بما فيها devDependencies للبناء
+RUN npm install
 
+# نسخ الكود المصدري
 COPY . .
 
-# بناء المشروع في وضع production
+# بناء المشروع
 RUN npm run build
 
+# إزالة devDependencies بعد البناء لتقليل حجم الصورة
+RUN npm prune --production
+
+# إعداد متغيرات البيئة
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+# إنشاء مستخدم لتشغيل الحاوية بدون صلاحيات root
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 RUN chown -R nextjs:nodejs /app
@@ -26,4 +34,5 @@ USER nextjs
 
 EXPOSE 3000
 
+# تشغيل المشروع
 CMD ["npm", "start"]
