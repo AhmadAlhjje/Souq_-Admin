@@ -7,13 +7,18 @@ RUN apk add --no-cache libc6-compat
 
 # نسخ package files وتثبيت التبعيات
 COPY package*.json ./
-RUN npm install --production
+
+# تثبيت جميع التبعيات (بما فيها dev) للبناء
+RUN npm install
 
 # نسخ الكود المصدري
 COPY . .
 
 # بناء المشروع
 RUN npm run build
+
+# حذف التبعيات الغير ضرورية (devDependencies) بعد البناء
+RUN npm prune --production
 
 # إعداد متغيرات البيئة
 ENV NODE_ENV=production
@@ -29,5 +34,4 @@ USER nextjs
 
 EXPOSE 3000
 
-# تشغيل السيرفر مباشرة بدون الاعتماد على standalone
 CMD ["npm", "start"]

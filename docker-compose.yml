@@ -12,16 +12,14 @@ services:
       - NODE_ENV=production
       - NEXT_PUBLIC_BASE_URL=http://31.97.181.122:4004
     volumes:
-      # إضافة volumes للبيانات المستمرة إذا لزم الأمر
       - ./logs:/app/logs
     restart: unless-stopped
     networks:
-      - chatapp-network
+      - souq_network
 
 networks:
-  chatapp-network:
-    driver: bridge
+  souq_network:
+    external: true
 
-# إضافة volumes للبيانات المستمرة
 volumes:
-  app-data:version: '3.8'
+  app-data:
